@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Booking</title>
+    <link rel="stylesheet" href="../styles/styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Booking</h1>
+
+        <h2>Available Vehicles</h2>
+        <div id="vehicleList">
+            <!-- Vehicle data will be dynamically loaded here -->
+        </div>
+
+        <h2>Make a Reservation</h2>
+        <form id="bookingForm">
+            <select id="vehicleSelect" name="vehicle_id" required>
+                <option value="" disabled selected>Select a vehicle</option>
+                <!-- Options will be populated dynamically -->
+            </select>
+            <input type="datetime-local" name="start_time" required>
+            <input type="datetime-local" name="end_time" required>
+            <button type="submit" class="btn">Book</button>
+        </form>
+
+        <button class="btn" onclick="location.href='profile.html'">Back</button>
+    </div>
+    <script src="../js/booking.js"></script>
+</body>
+</html>

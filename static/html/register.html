@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register</title>
+    <link rel="stylesheet" href="../styles/styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Register</h1>
+        <!-- Step 1: Email and Password -->
+        <div id="step1">
+            <form id="registerStep1">
+                <input type="email" name="email" placeholder="Email" required>
+                <input type="password" name="password" placeholder="Password" required>
+                <button type="submit" class="btn">Next</button>
+            </form>
+        </div>
+
+        <!-- Step 2: Phone Number and Country Code -->
+        <div id="step2" style="display:none;">
+            <form id="registerStep2">
+                <input type="text" name="phone_number" placeholder="Phone Number" required>
+                <select name="country_code" required>
+                    <option value="+65">+65 (Singapore)</option>
+                    <option value="+1">+1 (USA)</option>
+                    <option value="+44">+44 (UK)</option>
+                    <!-- Add more options as needed -->
+                </select>
+                <button type="submit" class="btn">Verify Phone</button>
+            </form>
+        </div>
+
+        <button class="btn" onclick="location.href='../index.html'">Back</button>
+    </div>
+    <script src="../js/auth.js"></script>
+</body>
+</html>

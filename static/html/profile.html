@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile</title>
+    <link rel="stylesheet" href="../styles/styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Profile</h1>
+
+        <h2>Membership and Personal Details</h2>
+        <div id="profileDetails">
+            <!-- User details will be dynamically loaded here -->
+            <p><strong>Email:</strong> <span id="profileEmail"></span></p>
+            <p><strong>Phone:</strong> <span id="profilePhone"></span></p>
+            <p><strong>Membership:</strong> <span id="profileMembership"></span></p>
+        </div>
+        <button class="btn" id="editDetailsBtn">Edit Details</button>
+
+        <h2>Navigation</h2>
+        <button class="btn" onclick="location.href='invoices.html'">View Invoices</button>
+        <button class="btn" onclick="location.href='history.html'">View Rental History</button>
+        <button class="btn" onclick="location.href='booking.html'">Make a Booking</button>
+
+        <button class="btn" onclick="location.href='../index.html'">Logout</button>
+    </div>
+    <script src="../js/profile.js"></script>
+</body>
+</html>
