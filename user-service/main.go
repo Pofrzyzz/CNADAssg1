@@ -75,6 +75,7 @@ func main() {
 	r.HandleFunc("/register", func(w http.ResponseWriter, r *http.Request) { RegisterHandler(w, r, db) }).Methods("POST")
 	r.HandleFunc("/login", func(w http.ResponseWriter, r *http.Request) { LoginHandler(w, r, db) }).Methods("POST")
 	r.HandleFunc("/profile", func(w http.ResponseWriter, r *http.Request) { ProfileHandler(w, r, db) }).Methods("GET")
+	r.HandleFunc("/user-id", func(w http.ResponseWriter, r *http.Request) { GetUserIDHandler(w, r, db) }).Methods("GET")
 
 	// Rental history endpoint
 	r.HandleFunc("/rental-history", func(w http.ResponseWriter, r *http.Request) { RentalHistoryHandler(w, r, db) }).Methods("GET")
@@ -185,6 +186,7 @@ func ProfileHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	var user User
 	err = db.QueryRow(`SELECT email, phone_number, country_code, membership_tier, phone_verified FROM users WHERE email = ?`, claims.Email).
 		Scan(&user.Email, &user.PhoneNumber, &user.CountryCode, &user.MembershipTier, &user.PhoneVerified)
+	fmt.Println(err)
 	if err != nil {
 		http.Error(w, "User not found", http.StatusNotFound)
 		return
@@ -194,11 +196,36 @@ func ProfileHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	json.NewEncoder(w).Encode(user)
 }
 
+// GetUserIDHandler retrieves the user_id of the logged-in user
+func GetUserIDHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
+	authHeader := r.Header.Get("Authorization")
+	tokenString := authHeader[len("Bearer "):]
+
+	claims, err := validateJWT(tokenString)
+	if err != nil {
+		http.Error(w, "Invalid or expired token", http.StatusUnauthorized)
+		return
+	}
+
+	var userID int
+	err = db.QueryRow(`SELECT user_id FROM users WHERE email = ?`, claims.Email).Scan(&userID)
+	log.Println(claims)
+	log.Println(claims.Email)
+	log.Println(userID)
+	if err != nil {
+		http.Error(w, "User not found", http.StatusNotFound)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]int{"user_id": userID})
+}
+
 // RentalHistoryHandler retrieves rental history
 func RentalHistoryHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	authHeader := r.Header.Get("Authorization")
 	tokenString := authHeader[len("Bearer "):]
-
+	fmt.Println(tokenString)
 	claims, err := validateJWT(tokenString)
 	if err != nil {
 		http.Error(w, "Invalid or expired token", http.StatusUnauthorized)

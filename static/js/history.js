@@ -10,7 +10,7 @@ async function loadRentalHistory() {
             return;
         }
 
-        const response = await fetch(`${API_USER}/rental-history`, {
+        const response = await fetch(`http://localhost:8080/api/user/rental-history`, {
             method: "GET",
             headers: {
                 Authorization: `Bearer ${token}`,

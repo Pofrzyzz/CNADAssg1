@@ -4,7 +4,7 @@ const API_BILLING = "/api/billing";
 // Load available vehicles and populate the booking page
 async function loadVehicles() {
     try {
-        const response = await fetch(`${API_VEHICLE}/vehicles?availability=true`, {
+        const response = await fetch(`http://localhost:8080/api/vehicle/vehicles?availability=true`, {
             method: "GET",
         });
 
@@ -61,7 +61,7 @@ document.getElementById("bookingForm")?.addEventListener("submit", async functio
         }
 
         // Estimate cost before booking
-        const estimateResponse = await fetch(`${API_BILLING}/calculate-cost`, {
+        const estimateResponse = await fetch(`http://localhost:8080/api/billing/calculate-cost`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -85,7 +85,7 @@ document.getElementById("bookingForm")?.addEventListener("submit", async functio
         if (!confirmBooking) return;
 
         // Make the booking
-        const bookingResponse = await fetch(`${API_VEHICLE}/book-vehicle`, {
+        const bookingResponse = await fetch(`http://localhost:8080/api/vehicle/book-vehicle`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",

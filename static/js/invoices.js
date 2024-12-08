@@ -4,21 +4,34 @@ const API_BILLING = "/api/billing";
 async function loadInvoices() {
     try {
         const token = localStorage.getItem("token");
+        console.log(token);
+
         if (!token) {
             alert("You must be logged in to view invoices.");
             window.location.href = "../index.html";
             return;
         }
 
-        const userID = localStorage.getItem("user_id"); // Assume `user_id` is stored during login
-        if (!userID) {
+        // Fetch user ID using the /user-id endpoint
+        const userIdResponse = await fetch("http://localhost:8080/api/user/user-id", {
+            method: "GET",
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        });
+        console.log(userIdResponse);
+        if (!userIdResponse.ok) {
             alert("Failed to retrieve user information. Please log in again.");
             localStorage.removeItem("token");
             window.location.href = "../index.html";
             return;
         }
 
-        const response = await fetch(`${API_BILLING}/invoices/user/${userID}`, {
+        const userIdData = await userIdResponse.json();
+        const userID = userIdData.user_id; // Extract the user_id from the response
+
+        // Fetch invoices for the user using the user ID
+        const response = await fetch(`http://localhost:8080/api/billing/invoices/user/${userID}`, {
             method: "GET",
             headers: {
                 Authorization: `Bearer ${token}`,
