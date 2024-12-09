@@ -9,6 +9,16 @@ PORT=
 DB_DSN=
 JWT_SECRET_KEY=
 
-If there's a need to install the modules, head to a new terminal running command prompt and run the bat file.
 
 Finally, run the main.go file that is in the root folder and the page should be live at the chosen port.
+
+```mermaid
+graph TD
+    User[User] -->|HTTP Requests| MainService[Main Service]
+    MainService -->|API Calls| UserService[User Service]
+    MainService -->|API Calls| VehicleService[Vehicle Service]
+    MainService -->|API Calls| BillingService[Billing Service]
+    UserService -->|CRUD Operations| Database[(Database)]
+    VehicleService -->|CRUD Operations| Database[(Database)]
+    BillingService -->|CRUD Operations| Database[(Database)]
+
