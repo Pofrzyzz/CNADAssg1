@@ -19,7 +19,7 @@ async function loadInvoices() {
                 Authorization: `Bearer ${token}`,
             },
         });
-        console.log(userIdResponse);
+
         if (!userIdResponse.ok) {
             alert("Failed to retrieve user information. Please log in again.");
             localStorage.removeItem("token");
@@ -29,12 +29,14 @@ async function loadInvoices() {
 
         const userIdData = await userIdResponse.json();
         const userID = userIdData.user_id; // Extract the user_id from the response
+        console.log(userID)
+        const userID2 = parseInt(userID);  // Convert the user_id to an integer
 
         // Fetch invoices for the user using the user ID
         const response = await fetch(`http://localhost:8080/api/billing/invoices/user/${userID}`, {
             method: "GET",
             headers: {
-                Authorization: `Bearer ${token}`,
+                Authorization: `Bearer ${token}`,   
             },
         });
 
@@ -44,6 +46,7 @@ async function loadInvoices() {
         }
 
         const invoices = await response.json();
+        console.log(invoices)
         const invoiceTable = document.getElementById("invoiceTable").querySelector("tbody");
 
         // Populate the invoice table

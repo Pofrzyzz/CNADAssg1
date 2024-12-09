@@ -77,6 +77,9 @@ func main() {
 	r.HandleFunc("/profile", func(w http.ResponseWriter, r *http.Request) { ProfileHandler(w, r, db) }).Methods("GET")
 	r.HandleFunc("/user-id", func(w http.ResponseWriter, r *http.Request) { GetUserIDHandler(w, r, db) }).Methods("GET")
 
+	// Route to update profile - phone number only
+	r.HandleFunc("/update-profile", func(w http.ResponseWriter, r *http.Request) { UpdateProfileHandler(w, r, db) }).Methods("PATCH")
+
 	// Rental history endpoint
 	r.HandleFunc("/rental-history", func(w http.ResponseWriter, r *http.Request) { RentalHistoryHandler(w, r, db) }).Methods("GET")
 
@@ -225,7 +228,6 @@ func GetUserIDHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 func RentalHistoryHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	authHeader := r.Header.Get("Authorization")
 	tokenString := authHeader[len("Bearer "):]
-	fmt.Println(tokenString)
 	claims, err := validateJWT(tokenString)
 	if err != nil {
 		http.Error(w, "Invalid or expired token", http.StatusUnauthorized)
@@ -255,6 +257,38 @@ func RentalHistoryHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(rentals)
+}
+
+// UpdateProfileHandler allows the user to update their phone number only
+func UpdateProfileHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
+	// Get the JWT token from the Authorization header
+	authHeader := r.Header.Get("Authorization")
+	tokenString := authHeader[len("Bearer "):]
+
+	// Validate JWT token
+	claims, err := validateJWT(tokenString)
+	if err != nil {
+		http.Error(w, "Invalid or expired token", http.StatusUnauthorized)
+		return
+	}
+
+	// Get the new phone number from the request body
+	phoneNumber := r.FormValue("phone_number")
+	if phoneNumber == "" {
+		http.Error(w, "Phone number is required", http.StatusBadRequest)
+		return
+	}
+
+	// Update the user's phone number in the database
+	_, err = db.Exec(`UPDATE users SET phone_number = ? WHERE email = ?`, phoneNumber, claims.Email)
+	if err != nil {
+		http.Error(w, "Failed to update phone number", http.StatusInternalServerError)
+		return
+	}
+
+	// Send a success response
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]string{"message": "Phone number updated successfully. Please verify your new phone number with OTP."})
 }
 
 // JWT utilities

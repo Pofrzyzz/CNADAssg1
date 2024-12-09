@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rental History</title>
     <link rel="stylesheet" href="../styles/styles.css">
+    <!-- Include a date-time picker library -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.css">
 </head>
 <body>
     <div class="container">
@@ -17,6 +19,7 @@
                     <th>Start Time</th>
                     <th>End Time</th>
                     <th>Total Cost</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -24,8 +27,28 @@
             </tbody>
         </table>
 
+        <!-- Modal for modifying reservation -->
+        <div id="modifyModal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closeModal()">&times;</span>
+                <h2>Modify Reservation</h2>
+                <form id="modifyForm">
+                    <label for="newStartTime">New Start Time:</label>
+                    <input type="text" id="newStartTime" class="datetime-picker" required>
+
+                    <label for="newEndTime">New End Time:</label>
+                    <input type="text" id="newEndTime" class="datetime-picker" required>
+
+                    <button type="submit" class="btn">Save Changes</button>
+                </form>
+            </div>
+        </div>
+
         <button class="btn" onclick="location.href='profile.html'">Back</button>
     </div>
+
+    <!-- Include Flatpickr for date-time selection -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.js"></script>
     <script src="../js/history.js"></script>
 </body>
 </html>

@@ -39,6 +39,7 @@ func main() {
 	r.HandleFunc("/invoices/{reservation_id}", func(w http.ResponseWriter, r *http.Request) { FetchInvoiceHandler(w, r, db) }).Methods("GET")
 	r.HandleFunc("/invoices/user/{user_id}", func(w http.ResponseWriter, r *http.Request) { FetchInvoicesByUserHandler(w, r, db) }).Methods("GET")
 	r.HandleFunc("/update-payment-status", func(w http.ResponseWriter, r *http.Request) { UpdatePaymentStatusHandler(w, r, db) }).Methods("PATCH")
+	r.HandleFunc("/make-payment", func(w http.ResponseWriter, r *http.Request) { MakePaymentHandler(w, r, db) }).Methods("POST")
 
 	// Start server
 	log.Println("Billing service running on port 8082")
@@ -162,30 +163,37 @@ func FetchInvoicesByUserHandler(w http.ResponseWriter, r *http.Request, db *sql.
 		return
 	}
 
+	// Query the database for invoices
 	rows, err := db.Query(`
-		SELECT billing.reservation_id, billing.amount, billing.payment_status, billing.created_at
-		FROM billing
-		JOIN reservations ON billing.reservation_id = reservations.reservation_id
-		WHERE reservations.user_id = ?`, userID)
+        SELECT 
+            billing.reservation_id, 
+            billing.amount, 
+            billing.payment_status, 
+            DATE_FORMAT(billing.created_at, '%Y-%m-%d') AS created_at 
+        FROM billing
+        JOIN reservations ON billing.reservation_id = reservations.reservation_id
+        WHERE reservations.user_id = ?`, userID)
 	if err != nil {
 		http.Error(w, "Failed to fetch invoices", http.StatusInternalServerError)
 		return
 	}
 	defer rows.Close()
 
+	// Define a struct for individual invoice data
 	var invoices []struct {
-		ReservationID int       `json:"reservation_id"`
-		Amount        float64   `json:"amount"`
-		PaymentStatus string    `json:"payment_status"`
-		CreatedAt     time.Time `json:"created_at"`
+		ReservationID int     `json:"reservation_id"`
+		Amount        float64 `json:"amount"`
+		PaymentStatus string  `json:"payment_status"`
+		CreatedAt     string  `json:"created_at"` // Use string for date
 	}
 
+	// Loop through the rows and scan data into the struct
 	for rows.Next() {
 		var invoice struct {
-			ReservationID int       `json:"reservation_id"`
-			Amount        float64   `json:"amount"`
-			PaymentStatus string    `json:"payment_status"`
-			CreatedAt     time.Time `json:"created_at"`
+			ReservationID int     `json:"reservation_id"`
+			Amount        float64 `json:"amount"`
+			PaymentStatus string  `json:"payment_status"`
+			CreatedAt     string  `json:"created_at"` // Use string for date
 		}
 		if err := rows.Scan(&invoice.ReservationID, &invoice.Amount, &invoice.PaymentStatus, &invoice.CreatedAt); err != nil {
 			http.Error(w, "Error scanning invoice data", http.StatusInternalServerError)
@@ -194,6 +202,51 @@ func FetchInvoicesByUserHandler(w http.ResponseWriter, r *http.Request, db *sql.
 		invoices = append(invoices, invoice)
 	}
 
+	// Check for errors during iteration
+	if err := rows.Err(); err != nil {
+		http.Error(w, "Error iterating over rows", http.StatusInternalServerError)
+		return
+	}
+
+	// Encode the data to JSON and send it in the response
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(invoices)
+}
+
+// MakePaymentHandler creates a new billing record for a payment
+func MakePaymentHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
+	var data struct {
+		ReservationID int     `json:"reservation_id"`
+		Amount        float64 `json:"amount"`
+		PaymentStatus string  `json:"payment_status"`
+		InvoiceID     string  `json:"invoice_id"`
+	}
+
+	// Decode the incoming request body
+	err := json.NewDecoder(r.Body).Decode(&data)
+	if err != nil {
+		http.Error(w, "Invalid input", http.StatusBadRequest)
+		return
+	}
+
+	// Validate required fields
+	if data.ReservationID == 0 || data.Amount <= 0 || data.PaymentStatus == "" || data.InvoiceID == "" {
+		http.Error(w, "All fields are required", http.StatusBadRequest)
+		return
+	}
+
+	// Insert a new row into the billing table
+	_, err = db.Exec(`
+		INSERT INTO billing (reservation_id, amount, payment_status, invoice_id, created_at)
+		VALUES (?, ?, ?, ?, NOW())`,
+		data.ReservationID, data.Amount, data.PaymentStatus, data.InvoiceID,
+	)
+	if err != nil {
+		http.Error(w, "Failed to create billing record", http.StatusInternalServerError)
+		return
+	}
+
+	// Respond with success
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(map[string]string{"message": "Billing record created successfully"})
 }

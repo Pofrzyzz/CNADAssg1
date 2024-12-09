@@ -34,7 +34,7 @@ async function loadProfile() {
     }
 }
 
-// Edit and update user details
+// Edit and update user details (only phone number)
 document.getElementById("editDetailsBtn")?.addEventListener("click", async function () {
     const newPhone = prompt("Enter your new phone number:");
     if (!newPhone) {
@@ -50,7 +50,8 @@ document.getElementById("editDetailsBtn")?.addEventListener("click", async funct
             return;
         }
 
-        const response = await fetch(`${API_BASE}/update-profile`, {
+        // Send a request to update the phone number
+        const response = await fetch(`http://localhost:8080/api/user/update-profile`, {
             method: "PATCH",
             headers: {
                 "Content-Type": "application/x-www-form-urlencoded",
@@ -65,7 +66,40 @@ document.getElementById("editDetailsBtn")?.addEventListener("click", async funct
             return;
         }
 
-        alert("Details updated successfully!");
+        alert("Phone number updated successfully!");
+
+        // Now request OTP for phone number verification
+        const otpResponse = await fetch(`http://localhost:8080/api/user/generate-otp`, {
+            method: "POST",
+            body: new URLSearchParams({ phone_number: newPhone }),
+        });
+
+        const otpResult = await otpResponse.json();
+        if (!otpResponse.ok) {
+            alert(otpResult.message || "Failed to generate OTP");
+            return;
+        }
+
+        // Prompt the user for the OTP
+        const userOTP = prompt("Enter the OTP sent to your new phone number:");
+        if (!userOTP) {
+            alert("OTP is required to proceed.");
+            return;
+        }
+
+        // Verify OTP
+        const verifyResponse = await fetch(`http://localhost:8080/api/user/verify-otp`, {
+            method: "POST",
+            body: new URLSearchParams({ phone_number: newPhone, otp: userOTP }),
+        });
+
+        const verifyResult = await verifyResponse.json();
+        if (!verifyResponse.ok) {
+            alert(verifyResult.message || "OTP verification failed");
+            return;
+        }
+
+        alert("Phone number successfully verified!");
         loadProfile(); // Reload the profile with updated details
     } catch (error) {
         console.error("Error updating profile:", error);
